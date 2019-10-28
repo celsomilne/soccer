@@ -96,7 +96,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>referee</name>
+		<name>player</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
@@ -261,18 +261,6 @@
 			<ymin>625</ymin>
 			<xmax>481</xmax>
 			<ymax>703</ymax>
-		</bndbox>
-	</object>
-	<object>
-		<name>cameraman</name>
-		<pose>Unspecified</pose>
-		<truncated>1</truncated>
-		<difficult>0</difficult>
-		<bndbox>
-			<xmin>547</xmin>
-			<ymin>642</ymin>
-			<xmax>587</xmax>
-			<ymax>720</ymax>
 		</bndbox>
 	</object>
 </annotation>

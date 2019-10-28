@@ -264,7 +264,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>referee</name>
+		<name>player</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
