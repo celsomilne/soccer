@@ -15,6 +15,10 @@ class Visualiser_Base(object):
         self.frameHeight = int(self._get_CV_prop(cv2.CAP_PROP_FRAME_HEIGHT))
         self.frameRate = int(self._get_CV_prop(cv2.CAP_PROP_FPS))
 
+        # Keep track of previous and current frame
+        self.prevFrame = None
+        self.curFrame = None
+
     def _read_next(self):
         return self.capture.read()
 
@@ -69,10 +73,6 @@ class Visualiser(Visualiser_Base):
     def __init__(self, video_io, model):
         super().__init__(video_io)
         self.MUE = MarkupEngine(model)
-
-        # Keep track of previous and current frame
-        self.prevFrame = None
-        self.curFrame = None
     
     def next_frame(self):
         """
