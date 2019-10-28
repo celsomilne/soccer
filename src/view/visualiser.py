@@ -34,6 +34,14 @@ class Visualiser_Base(object):
         frameBGR = self._cvt_RGB2BGR(frameRGB)
         writer.write(frameBGR)
 
+    def _reset_seed(self):
+        self._set_CV_prop(cv2.CAP_PROP_POS_FRAMES, 0)
+        self.prevFrame = None
+
+    def _set_curFrame(self, frame):
+        self.prevFrame = self.curFrame
+        self.curFrame = frame
+
     def release(self):
         self.frameCount = self.frameHeight = self.frameWidth = self.frameRate = 0
         self.capture.release()
@@ -61,12 +69,17 @@ class Visualiser(Visualiser_Base):
     def __init__(self, video_io, model):
         super().__init__(video_io)
         self.MUE = MarkupEngine(model)
+
+        # Keep track of previous and current frame
+        self.prevFrame = None
+        self.curFrame = None
     
     def next_frame(self):
         """
         Get the next frame in the capture.
         """
         hasFrame, frame = self._read_next()
+        self._set_curFrame(frame)
         if hasFrame:
             frame = self._cvt_BGR2RGB(frame)
         return hasFrame, frame
@@ -77,7 +90,7 @@ class Visualiser(Visualiser_Base):
         """
         hasFrame, frame = self.next_frame()
         if hasFrame:
-            frame = self.MUE.markup(frame)
+            frame = self.MUE.markup(frame, prevFrame=self.prevFrame)
         return hasFrame, frame
 
     def markup_all(self, fname, codec="", verbose=True):
@@ -100,4 +113,4 @@ class Visualiser(Visualiser_Base):
             self._cv_write_frame(vw, frame)
 
         # Reset the position
-        self._set_CV_prop(cv2.CAP_PROP_POS_FRAMES, 0)
+        self._reset_seed()
