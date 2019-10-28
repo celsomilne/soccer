@@ -9,6 +9,7 @@ class MarkupEngine(MarkupEngine_Base):
     
     def __init__(self, model):
         super().__init__()
+        assert(isinstance(model, type(ModelBase)))
         self.model = model
         
 
