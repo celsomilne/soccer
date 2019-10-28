@@ -13,7 +13,9 @@ class MarkupEngine(MarkupEngine_Base):
         self.model = model
         
 
-    def markup(self, frame):
-        prediction = self.model.predict(frame)
-        # TODO - mark up the frame
+    def markup(self, frame, prevFrame):
+        # Prediction should be a list of tuples
+        # -> (label, (pt1, pt2), speed)
+        prediction = self.model.predict(frame, prevFrame)
+        label, (pt1, pt2), speed = prediction
         return frame
