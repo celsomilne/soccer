@@ -2,7 +2,7 @@ from ._base import ModelBase
 
 class SoccerModel(ModelBase):
     
-    def predict(self, frame, prevFrame)  -> list:
+    def predict(self, frame, prevFrame=None)  -> list:
         """Get predicted positions and speeds of players and the ball.
         
         Parameters
@@ -10,7 +10,7 @@ class SoccerModel(ModelBase):
         frame : np.ndarray
             The frame to apply the predicition to.
         prevFrame : np.ndarray
-            The previous frame in the video. 
+            The previous frame in the video. If None, `speed` is set to None
 
         Returns
         -------
@@ -23,6 +23,6 @@ class SoccerModel(ModelBase):
                 * pt2 : int
                     Vertex of the rectangle opposite to `pt1`
                 * speed : float
-                    Speed in m/s of the label
+                    Speed in m/s of the label. None is `prevFrame` is None.
         """
         return
