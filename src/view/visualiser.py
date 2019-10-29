@@ -42,10 +42,20 @@ class Visualiser_Base(object):
         self.prevFrame = self.curFrame
         self.curFrame = frame
 
-    def _get_fCount(self, verbose):
-        fCount = range(self.frameCount)
+    def _get_fCount(self, verbose, every=1):
+        fCount = range(0, self.frameCount, every)
         if verbose:
             fCount = tqdm(fCount)
+
+    def next_frame(self):
+        """
+        Get the next frame in the capture.
+        """
+        hasFrame, frame = self._read_next()
+        self._set_curFrame(frame)
+        if hasFrame:
+            frame = self._cvt_BGR2RGB(frame)
+        return hasFrame, frame
 
     def release(self):
         self.frameCount = self.frameHeight = self.frameWidth = self.frameRate = 0
@@ -91,16 +101,6 @@ class Visualiser(Visualiser_Base):
         """
         super().__init__(video_io)
         self.MUE = MarkupEngine(model)
-    
-    def next_frame(self):
-        """
-        Get the next frame in the capture.
-        """
-        hasFrame, frame = self._read_next()
-        self._set_curFrame(frame)
-        if hasFrame:
-            frame = self._cvt_BGR2RGB(frame)
-        return hasFrame, frame
 
     def next_markup(self):
         """
