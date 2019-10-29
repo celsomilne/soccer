@@ -38,17 +38,22 @@ class Visualiser_Base(object):
         frameBGR = self._cvt_RGB2BGR(frameRGB)
         writer.write(frameBGR)
 
-    def _reset_seed(self):
-        self._set_CV_prop(cv2.CAP_PROP_POS_FRAMES, 0)
-        self.prevFrame = None
-
     def _set_curFrame(self, frame):
         self.prevFrame = self.curFrame
         self.curFrame = frame
 
+    def _get_fCount(self, verbose):
+        fCount = range(self.frameCount)
+        if verbose:
+            fCount = tqdm(fCount)
+
     def release(self):
         self.frameCount = self.frameHeight = self.frameWidth = self.frameRate = 0
         self.capture.release()
+    
+    def reset_seed(self):
+        self._set_CV_prop(cv2.CAP_PROP_POS_FRAMES, 0)
+        self.prevFrame = None
 
     @staticmethod
     def _cvt_BGR2RGB(frame):
@@ -66,11 +71,24 @@ class Visualiser_Base(object):
         elif isinstance(video_io, str):
             _io = cv2.VideoCapture(video_io)
         return _io
+
+    @property
+    def msPerFrame(self):
+        return 1000 // self.frameRate
         
 
 class Visualiser(Visualiser_Base):
 
     def __init__(self, video_io, model):
+        """Create a new visualiser object.
+        
+        Parameters
+        ----------
+        video_io : str or cv2.VideoCapture 
+            If string, will create a new cv2.VideoCapture object from filename.
+        model : src.Model._base.ModelBase
+            A model class. Must implement the method `predict(self, frame, prevFrame)   
+        """
         super().__init__(video_io)
         self.MUE = MarkupEngine(model)
     
@@ -90,16 +108,18 @@ class Visualiser(Visualiser_Base):
         """
         hasFrame, frame = self.next_frame()
         if hasFrame:
-            frame = self.MUE.markup(frame, prevFrame=self.prevFrame)
+            frame = self.MUE.markup(frame, self.prevFrame)
         return hasFrame, frame
 
-    def markup_all(self, fname, codec="", verbose=True):
-        vw = self._create_new_writer(fname, codec)
+    def markup_all(self, fname, codec="MPG4", verbose=True, show=False):
+        if not show:
+            vw = self._create_new_writer(fname, codec)
+        else:
+            window = cv2.namedWindow(fname)
+        self.reset_seed()
         
         # Range of frames to iterate over
-        fCount = range(self.frameCount)
-        if verbose:
-            fCount = tqdm(fCount)
+        fCount = self._get_fCount(verbose)
 
         # Iterate through each frame
         for fi in fCount:
@@ -109,8 +129,16 @@ class Visualiser(Visualiser_Base):
             if not hasFrame:
                 break
 
-            # Write to the video writer
-            self._cv_write_frame(vw, frame)
+            if show:
+                frame = self._cvt_BGR2RGB(frame)
+                # Show the frame
+                cv2.imshow(fname, frame)
+                # Press Q on keyboard to  exit
+                if cv2.waitKey(self.msPerFrame) & 0xFF == ord('q'):
+                    break
+            else:
+                # Write to the video writer
+                self._cv_write_frame(vw, frame)
 
         # Reset the position
-        self._reset_seed()
+        self.reset_seed()

@@ -18,10 +18,10 @@ class SoccerModel(ModelBase):
             Each tuple in `prediction` is (label, (pt1, pt2), speed)
                 * label : str
                     The label name
-                * pt1 : int
-                    Vertex of the rectangle bounding box
-                * pt2 : int
-                    Vertex of the rectangle opposite to `pt1`
+                * pt1 : (int, int)
+                    Vertex of the rectangle bounding box as (x_position, y_position)
+                * pt2 : (int, int)
+                    Vertex of the rectangle opposite to `pt1` as (x_position, y_position)
                 * speed : float
                     Speed in m/s of the label. None is `prevFrame` is None.
         """
