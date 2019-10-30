@@ -1,4 +1,3 @@
-from .markup import MarkupEngine
-from .scraper import Scraper
+from .markup import MarkupEngine    
 
 from ..model import ModelBase
