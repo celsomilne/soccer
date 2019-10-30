@@ -6,6 +6,7 @@ import numpy as np
 
 from ..view import Visualiser_Base
 
+
 class Scraper_Base(object):
     def __init__(self, url):
         self.url = url
@@ -30,7 +31,6 @@ class Scraper_Base(object):
 
 
 class Scraper(Scraper_Base):
-
     def __init__(self, url):
         super().__init__(url)
 
@@ -47,7 +47,7 @@ class Scraper(Scraper_Base):
         if os.path.isfile(filename):
             warnings.warn(f"Filename {filename} already exists. Aborting.")
             return
-        
+
         # Download the file
         stream.download(filepath=filename, quiet=False)
 
@@ -66,14 +66,22 @@ class Scraper(Scraper_Base):
 
         # Write the video capture to file
         cap.toFile(filename, root, processFun, codec=codec, everyFrame=every)
-        
-        
-class CaptureObject(Visualiser_Base):
 
+
+class CaptureObject(Visualiser_Base):
     def __init__(self, video_io):
         super().__init__(video_io)
 
-    def toFile(self, filename, dirname, processFun=None, codec="MJPG", everyFrame=10, *args, **kwargs):
+    def toFile(
+        self,
+        filename,
+        dirname,
+        processFun=None,
+        codec="MJPG",
+        everyFrame=10,
+        *args,
+        **kwargs,
+    ):
         if processFun is None:
             processFun = lambda x: (True, x)
         fCount = self._get_fCount(verbose=True, every=everyFrame)
@@ -96,5 +104,3 @@ class CaptureObject(Visualiser_Base):
                 frame = self._cvt_RGB2BGR(frame)
                 writer.write(frame)
                 cv2.imwrite(f"{dirname}/{i}.png", frame)
-
-        

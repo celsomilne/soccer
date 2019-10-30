@@ -1,8 +1,8 @@
 from ._base import ModelBase
 
+
 class SoccerModel(ModelBase):
-    
-    def predict(self, frame, prevFrame=None)  -> list:
+    def predict(self, frame, prevFrame=None) -> list:
         """Get predicted positions and speeds of players and the ball.
         
         Parameters

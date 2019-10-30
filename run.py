@@ -6,7 +6,7 @@ class NotModel(ModelBase):
     def __init__(self):
         return
     def predict(self, frame, prevFrame):
-        pred = ("testLabel", ((180, 360), (1200, 50)), 20)
+        pred = [("testLabel", ((180, 360), (1200, 50)), 20, 0.6, 0.2)]
         return pred
     
 # Create an instance of our model
