@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from bounding_box import bounding_box as bb
 
 from ..model import ModelBase
 
@@ -30,13 +31,22 @@ class MarkupEngine(MarkupEngine_Base):
 
             # Get each of the corner points
             top_left, bottom_left, top_right, bottom_right = self.parsePoints(pt1, pt2)
+            left = top_left[0]
+            top = top_left[1]
+            right = bottom_right[0]
+            bottom = bottom_right[1]
+
+            # Convert to RGB (library requirement)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             # Draw the bounding box, text and speed
-            cv2.rectangle(frame, pt1, pt2, [255, 0, 0])
+            bb.add(frame, left, top, right, bottom, "%sm/s" % (speed), 'blue')
 
-            # TODO - make the text with background to make easier to view
-            cv2.putText(frame, label, top_left, self.font, self.fontScale, [0, 0, 0])
-            cv2.putText(frame, "%sm/s" % (speed), bottom_right, self.font, self.fontScale, [0, 0, 0])
+            # Convert to BGR (for opencv)
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+            # # TODO - make the text with background to make easier to view
+            # cv2.putText(frame, "%sm/s" % (speed), bottom_right, self.font, self.fontScale, [0, 0, 0])
         return frame
 
     @staticmethod
