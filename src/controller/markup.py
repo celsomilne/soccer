@@ -24,18 +24,19 @@ class MarkupEngine(MarkupEngine_Base):
     def markup(self, frame, prevFrame):
         # Prediction should be a list of tuples
         # -> (label, (pt1, pt2), speed)
-        prediction = self.model.predict(frame, prevFrame)
-        label, (pt1, pt2), speed = prediction
+        predictions = self.model.predict(frame, prevFrame)
+        for prediction in predictions:
+            label, (pt1, pt2), speed = prediction
 
-        # Get each of the corner points
-        top_left, bottom_left, top_right, bottom_right = self.parsePoints(pt1, pt2)
+            # Get each of the corner points
+            top_left, bottom_left, top_right, bottom_right = self.parsePoints(pt1, pt2)
 
-        # Draw the bounding box, text and speed
-        cv2.rectangle(frame, pt1, pt2, [255, 0, 0])
+            # Draw the bounding box, text and speed
+            cv2.rectangle(frame, pt1, pt2, [255, 0, 0])
 
-        # TODO - make the text with background to make easier to view
-        cv2.putText(frame, label, top_left, self.font, self.fontScale, [0, 0, 0])
-        cv2.putText(frame, "%sm/s" % (speed), bottom_right, self.font, self.fontScale, [0, 0, 0])
+            # TODO - make the text with background to make easier to view
+            cv2.putText(frame, label, top_left, self.font, self.fontScale, [0, 0, 0])
+            cv2.putText(frame, "%sm/s" % (speed), bottom_right, self.font, self.fontScale, [0, 0, 0])
         return frame
 
     @staticmethod
