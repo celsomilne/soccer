@@ -92,7 +92,7 @@ class SoccerObjectDetector(object):
         # Save the video to a directory
         video = VideoDataset(videoname, img_size=self.img_size)
         save_dir = os.path.abspath(savedir)
-        if not os.path.isdir(savedir) or  os.listdir(save_dir) == []:
+        if not os.path.isdir(savedir) or os.listdir(save_dir) == []:
             video.toFile(None, save_dir, None, everyFrame=1)
         dataFile = ImageFolder(save_dir, img_size=self.img_size)
         video.release()
