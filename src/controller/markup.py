@@ -19,13 +19,15 @@ class MarkupEngine(MarkupEngine_Base):
         super().__init__()
         self.model = model
 
-    def markup(self, frame, prevFrame, cmap=None):
+    def markup(self, frame, frameNo, prevFrame=None, cmap=None):
         """Markup a given frame
         
         Parameters
         ----------
-        frame : np.ndarray, int
-            The frame (as a ndarray) or frame number (requires that model has a detector class)
+        frame : np.ndarray
+            The frame
+        frameNo : int
+            The frame number
         prevFrame : np.ndarray, int 
             The previous frame or frame number
         cmap : dictionary, optional
@@ -38,7 +40,7 @@ class MarkupEngine(MarkupEngine_Base):
         """
         # Prediction should be a list of tuples
         # -> (label, (pt1, pt2), speed, x, y)
-        predictions = self.model.predict(frame, prevFrame)
+        predictions = self.model.predict(frameNo, prevFrame)
 
         # Load the football pitch with the same height as the frame
         fbPitch = FootballPitch()

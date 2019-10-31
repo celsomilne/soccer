@@ -362,7 +362,7 @@ class SoccerModel:
                     axis=1,
                 )
                 / fps
-            ) 
+            )
 
         self.obj_old = obj
 

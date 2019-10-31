@@ -21,7 +21,7 @@ from matplotlib.ticker import NullLocator  # get rid of axis ticks
 class SoccerObjectDetector(object):
     """ Find soccer players and save bounding boxes as a pandas DataFrame"""
 
-    def __init__(self):
+    def __init__(self, bboxpath=None):
         # use pretrained darknet53 weights
         fpath = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         utils_path = os.path.join(fpath, "utils")
@@ -36,7 +36,10 @@ class SoccerObjectDetector(object):
         self.class_path = os.path.join(utils_path, "coco.names")
 
         # path to bounding boxes
-        self.bbox_path = os.path.join(utils_path, "bboxes.pkl")
+        if bboxpath is None:
+            self.bbox_path = os.path.join(utils_path, "bboxes.pkl")
+        else:
+            self.bbox_path = bboxpath
         self.conf_thres = 0.6  # object confidence threshold
         self.nms_thres = 0.4  # iou thresshold for non-maximum suppression
         self.img_size = 704  # this needs to be a multiple of 2^5
@@ -89,6 +92,12 @@ class SoccerObjectDetector(object):
     def __call__(self, videoname: str, savedir: str = "tmp/") -> pd.DataFrame:
         """ load all the images and find bounding boxes """
 
+        # Load if we have already processed this file
+        # print(self.bbox_path)
+        if os.path.isfile(self.bbox_path):
+            self.load(self.bbox_path)
+            return
+
         # Save the video to a directory
         video = VideoDataset(videoname, img_size=self.img_size)
         save_dir = os.path.abspath(savedir)
@@ -108,7 +117,6 @@ class SoccerObjectDetector(object):
 
         loaderIt = tqdm(enumerate(dataloader), desc="Processing", total=len(dataFile))
         for batch_i, (img_paths, input_imgs) in loaderIt:
-
             img = Variable(input_imgs.type(Tensor))
 
             with torch.no_grad():
@@ -145,16 +153,20 @@ class SoccerObjectDetector(object):
                         columns=self.dataframe_labels,
                     )
                     self.bb_df = self.bb_df.append(df, ignore_index=True)
-        video.release()
+        self.save(path=self.bbox_path)
 
-    def save(self):
+    def save(self, path=None):
         """ save the found bboxes """
-        with open(self.bbox_path, "wb") as handle:
+        if path is None:
+            path = self.bbox_path
+        with open(path, "wb") as handle:
             pickle.dump(self.bb_df, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    def load(self):
+    def load(self, path=None):
         """ load the saved bboxes """
-        with open(self.bbox_path, "rb") as handle:
+        if path is None:
+            path = self.bbox_path
+        with open(path, "rb") as handle:
             # We need to modify this
             self.bb_df = pickle.load(handle)
 
