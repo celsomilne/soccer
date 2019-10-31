@@ -54,6 +54,9 @@ class Visualiser_Base(object):
             )
         self._set_CV_prop(cv2.CAP_PROP_POS_FRAMES, index)
 
+    def _get_frameNum(self):
+        return self._get_CV_prop(cv2.CAP_PROP_POS_FRAMES)
+
     def get_frame(self, index):
         """Get the frame at a given index without changing the seed or the previous frame.
         
@@ -67,7 +70,7 @@ class Visualiser_Base(object):
         frame : np.ndarray
             The BGR frame, as a numpy array.
         """
-        cur_frame_idx = self._get_CV_prop(cv2.CAP_PROP_POS_FRAMES)
+        cur_frame_idx = self._get_frameNum()
         self._set_frameNum(index)
         frame = self.next_frame()
         self._set_frameNum(cur_frame_idx)

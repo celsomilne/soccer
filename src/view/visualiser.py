@@ -29,7 +29,8 @@ class Visualiser(Visualiser_Base):
         """
         hasFrame, frame = self.next_frame()
         if hasFrame:
-            frame = self.MUE.markup(frame, self.prevFrame, cmap=self.cmap)
+            curFrameNo = self._get_frameNum()
+            frame = self.MUE.markup(curFrameNo, self.prevFrame, cmap=self.cmap)
         return hasFrame, frame
 
     def markup_all(self, fname, codec="MPG4", verbose=True, show=False):
