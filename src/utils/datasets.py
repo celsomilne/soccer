@@ -6,7 +6,9 @@ import numpy as np
 from PIL import Image
 import torch
 import torch.nn.functional as F
+import cv2
 
+from .._base.visualiser import Visualiser_Base
 from ..utils.augmentations import horisontal_flip
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
@@ -49,11 +51,40 @@ class ImageFolder(Dataset):
         img, _ = pad_to_square(img, 0)
         # Resize
         img = resize(img, self.img_size)
-
         return img_path, img
 
     def __len__(self):
         return len(self.files)
+
+
+class VideoDataset(Dataset):
+    def __init__(self, videoname, img_size=416):
+        # Create a capture object
+        self.cap = CaptureObject(videoname)
+
+    def __getitem__(self, index):
+        frameNo = str(index)
+
+        # Get the frame
+        frame = self.cap.get_frame(index)
+
+        # Extract as a PyTorch tensor
+        frame = transforms.ToTensor()
+
+        # Pad to a square
+        frame, _ = pad_to_square(frame, 0)
+        return str(index), frame
+
+    def __len__(self):
+        return self.cap.frameCount
+
+    def release(self):
+        self.cap.release()
+
+    def toFile(self, filename, dirname, processFun, everyFrame=1, *args, **kwargs):
+        self.cap.toFile(
+            filename, dirname, processFun, everyFrame=everyFrame, *args, **kwargs
+        )
 
 
 class ListDataset(Dataset):
@@ -158,3 +189,48 @@ class ListDataset(Dataset):
 
     def __len__(self):
         return len(self.img_files)
+
+
+class CaptureObject(Visualiser_Base):
+    def __init__(self, video_io):
+        super().__init__(video_io)
+
+    def toFile(
+        self,
+        filename,
+        dirname,
+        processFun=None,
+        codec="MJPG",
+        everyFrame=10,
+        *args,
+        **kwargs,
+    ):
+        if processFun is None:
+            processFun = lambda x: (True, x)
+        fCount = self._get_fCount(verbose=True, every=everyFrame, desc="Saving")
+        writer = self._create_new_writer(filename, codec)
+
+        # Make the image directory
+        if not os.path.isdir(dirname):
+            os.mkdir(dirname)
+
+        # Go through each frame
+        for i in fCount:
+            self._set_frameNum(i)
+            hasFrame, frame = self.next_frame()
+            if not hasFrame:
+                break
+            isValidFrame, processedFrame = processFun(frame, *args, **kwargs)
+
+            # Write valid frames to file
+            if isValidFrame:
+                frame = self._cvt_RGB2BGR(frame)
+                self._writeToWriter(writer, frame)
+                cv2.imwrite(f"{dirname}/{i}.jpg", frame)
+
+        self.reset_seed()
+
+    @staticmethod
+    def _writeToWriter(writer, frame):
+        if writer is not None:
+            writer.write(frame)

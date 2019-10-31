@@ -25,26 +25,18 @@ class SoccerObjectDetector(object):
         # use pretrained darknet53 weights
         fpath = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         utils_path = os.path.join(fpath, "utils")
-        
+
         # path to model definition file
-        self.model_def = os.path.join(
-            utils_path, "yolov3.cfg"
-        ) 
+        self.model_def = os.path.join(utils_path, "yolov3.cfg")
 
         # path to weights file
-        self.weights_path = os.path.join(
-            utils_path, "yolov3.weights"
-        ) 
+        self.weights_path = os.path.join(utils_path, "yolov3.weights")
 
-        # path to class label file 
-        self.class_path = os.path.join(
-            utils_path, "coco.names"
-        )
+        # path to class label file
+        self.class_path = os.path.join(utils_path, "coco.names")
 
-        # path to bounding boxes  
-        self.bbox_path = os.path.join(
-            utils_path, "bboxes.pkl"
-        )  
+        # path to bounding boxes
+        self.bbox_path = os.path.join(utils_path, "bboxes.pkl")
         self.conf_thres = 0.6  # object confidence threshold
         self.nms_thres = 0.4  # iou thresshold for non-maximum suppression
         self.img_size = 704  # this needs to be a multiple of 2^5
@@ -67,9 +59,8 @@ class SoccerObjectDetector(object):
         if self.weights_path.endswith(".weights"):
             self.model.load_darknet_weights(self.weights_path)
         else:
-            self.model.load_state_dict(
-                torch.load(self.weights_path)
-            )  # checkpoint weights
+            # checkpoint weights
+            self.model.load_state_dict(torch.load(self.weights_path))
 
         self.model.eval()  # for inference
 
@@ -95,24 +86,28 @@ class SoccerObjectDetector(object):
         new_im = new_im.resize(size=(min_size, min_size))
         return new_im
 
-    def __call__(self, image_folder: str) -> pd.DataFrame:
+    def __call__(self, videoname: str, savedir: str = "tmp/") -> pd.DataFrame:
         """ load all the images and find bounding boxes """
 
-        dataloader = DataLoader(
-            ImageFolder(image_folder, img_size=self.img_size),
-            batch_size=1,
-            shuffle=False,
-            num_workers=2,
-        )
+        # Save the video to a directory
+        video = VideoDataset(videoname, img_size=self.img_size)
+        save_dir = os.path.abspath(savedir)
+        if not os.path.isdir(savedir) or  os.listdir(save_dir) == []:
+            video.toFile(None, save_dir, None, everyFrame=1)
+        dataFile = ImageFolder(save_dir, img_size=self.img_size)
+        video.release()
 
+        # Create the dataset
+        dataloader = DataLoader(dataFile, batch_size=1, shuffle=False, num_workers=0,)
+
+        # Initialise the return dataframe
         self.bb_df = pd.DataFrame(columns=self.dataframe_labels)
         Tensor = (
-            torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
+            torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTkensor
         )
 
-        pbar = tqdm(range(len(dataloader)))  # progress bar
-        for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
-            pbar.update(1)
+        loaderIt = tqdm(enumerate(dataloader), desc="Processing", total=len(dataFile))
+        for batch_i, (img_paths, input_imgs) in loaderIt:
 
             img = Variable(input_imgs.type(Tensor))
 
@@ -150,6 +145,7 @@ class SoccerObjectDetector(object):
                         columns=self.dataframe_labels,
                     )
                     self.bb_df = self.bb_df.append(df, ignore_index=True)
+        video.release()
 
     def save(self):
         """ save the found bboxes """

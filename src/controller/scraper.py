@@ -5,6 +5,7 @@ import pafy
 import numpy as np
 
 from ..view import Visualiser_Base
+from ..utils.datasets import CaptureObject
 
 
 class Scraper_Base(object):
@@ -66,41 +67,3 @@ class Scraper(Scraper_Base):
 
         # Write the video capture to file
         cap.toFile(filename, root, processFun, codec=codec, everyFrame=every)
-
-
-class CaptureObject(Visualiser_Base):
-    def __init__(self, video_io):
-        super().__init__(video_io)
-
-    def toFile(
-        self,
-        filename,
-        dirname,
-        processFun=None,
-        codec="MJPG",
-        everyFrame=10,
-        *args,
-        **kwargs,
-    ):
-        if processFun is None:
-            processFun = lambda x: (True, x)
-        fCount = self._get_fCount(verbose=True, every=everyFrame)
-        writer = self._create_new_writer(filename, codec)
-
-        # Make the image directory
-        if not os.path.isdir(dirname):
-            os.mkdir(dirname)
-
-        # Go through each frame
-        for i in fCount:
-            self._set_CV_prop(cv2.CAP_PROP_POS_FRAMES, i)
-            hasFrame, frame = self.next_frame()
-            if not hasFrame:
-                break
-            isValidFrame, processedFrame = processFun(frame, *args, **kwargs)
-
-            # Write valid frames to file
-            if isValidFrame:
-                frame = self._cvt_RGB2BGR(frame)
-                writer.write(frame)
-                cv2.imwrite(f"{dirname}/{i}.png", frame)

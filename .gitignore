@@ -106,5 +106,8 @@ venv.bak/
 # mp4
 *.mp4
 
-# weights
+# Model weights
 *.weights
+
+# Sample data
+sample_data/*

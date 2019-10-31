@@ -1,3 +1,4 @@
+import os
 from src.view import Visualiser
 from src.model import SoccerModel
 from src.model import ModelBase
@@ -12,7 +13,9 @@ class NotModel(ModelBase):
         return pred
     
 detector = SoccerObjectDetector()
-detector.load(videoname)
+videoname = os.path.abspath("sample_data/middle_field_1.mov")
+detector(videoname, savedir="test/")
+print(detector.bb_df)
 
 # Create an instance of our model
 model = NotModel(detector)
