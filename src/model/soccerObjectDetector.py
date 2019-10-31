@@ -69,6 +69,7 @@ class SoccerObjectDetector(object):
 
         self.classes = load_classes(self.class_path)  # Extracts class labels from file
 
+    # TODO - improve this (currently not at all accurate)
     def detect_team(self, img_path: str, box: tuple = (0, 0, 1280, 704)) -> str:
         """ find the detected player's team """
         imgObj = Image.open(img_path[0])

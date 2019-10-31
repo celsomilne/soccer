@@ -312,20 +312,29 @@ class SoccerModel:
 
         # Pull objects in current dataframe
         df = self.detector.bb_df
-        obj = self.detector.get_df(batchNum=frameIdx)
+        obj = self.detector.get_df(batchNum=frameIdx).reset_index()
         frame = self.get_frame(obj)
 
         width = obj["width"]
         height = obj["height"]
 
+        # Get only rows for which the width and height are within 2 standard deviations
         obj = obj[np.abs(width - np.mean(width)) / np.std(width) < 2]
         obj = obj[np.abs(height - np.mean(height)) / np.std(height) < 2]
+
+        # Get the locations of the feet
         obj["ufeet"] = obj["left"] + obj["width"] / 2
         obj["vfeet"] = obj["top"] + obj["height"]
 
-        c = ft(frame)
+        # Get the right and bottom
+        obj["right"] = obj["left"] + obj["width"]
+        obj["bottom"] = obj["top"] + obj["height"]
+
+        # Get the feature transform
+        c = self.ft(frame)
 
         u = np.vstack((obj["ufeet"].values, obj["vfeet"].values, np.ones((1, len(df)))))
+        
         x = c.dot(u).T
         x = x / x[:, 2]
 
@@ -381,6 +390,7 @@ class SoccerModel:
         return vals
 
     def get_frame(self, obj):
-        fName = obj.iloc[0, "fileName"][0]
+        fName = obj.loc[0, "fileName"][0]
+        print(fName)
         frame = cv2.imread(fName)
         return frame

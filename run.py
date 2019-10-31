@@ -31,10 +31,10 @@ videoname = os.path.abspath("sample_data/side_to_side.mov")
 detector(videoname, savedir="test/")
 
 # Create an instance of our model
-model = NotModel(detector)
+model = SoccerModel(detector)
 
 # Create a new visualiser
-cmap = {"alpha": "blue", "omega": "red", "ball": "green", "other": "black"}
+cmap = {"alpha": "blue", "omega": "blue", "ball": "green", "other": "black"}
 vis = Visualiser(videoname, model, cmap=cmap)
 
 # Show all markups
