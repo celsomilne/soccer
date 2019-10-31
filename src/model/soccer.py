@@ -308,9 +308,10 @@ class SoccerModel:
         self.detector = detector
         self.objects = detector.bb_df
 
-    def predict(self, frameIdx):
+    def predict(self, frameIdx, fps=25):
 
         # Pull objects in current dataframe
+        df = self.detector.bb_df
         obj = self.detector.get_df(batchNum=frameIdx)
         frame = self.get_frame(obj)
 
@@ -360,8 +361,8 @@ class SoccerModel:
                     - df.loc[:, ["xold", "xold"]].values,
                     axis=1,
                 )
-                / 30
-            )  # fps
+                / fps
+            ) 
 
         self.obj_old = obj
 

@@ -18,7 +18,7 @@ detector(videoname, savedir="test/")
 print(detector.bb_df)
 
 # Create an instance of our model
-model = NotModel(detector)
+model = SoccerModel(detector)
 
 # Create a new visualiser
 vis = Visualiser("notebooks/training/train_1.avi", model)

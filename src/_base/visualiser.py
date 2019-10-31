@@ -76,25 +76,37 @@ class Visualiser_Base(object):
         self._set_frameNum(cur_frame_idx)
         return frame
 
-    def next_frame(self):
+    def next_frame(self, cvtRGB=True):
         """Get the next frame in the capture.
+
+        Parameters
+        ----------
+        cvtRGB : bool, default False
+            Convert the frame to RGB or not. Default is True. Otherwise will remain BGR.
         
         Returns
         -------
-        [type]
-            [description]
+        hasFrame : bool
+            Does a valid frame exist?
+        frame : np.ndarray
+            The RGB frame
         """
         hasFrame, frame = self._read_next()
         self._set_curFrame(frame)
-        if hasFrame:
+        if hasFrame and cvtRGB:
             frame = self._cvt_BGR2RGB(frame)
         return hasFrame, frame
 
     def release(self):
+        """Release the capture and reset the object
+        """
         self.frameCount = self.frameHeight = self.frameWidth = self.frameRate = 0
         self.capture.release()
+        self.capture = None
 
     def reset_seed(self):
+        """Reset the video to read from the beginning
+        """
         self._set_frameNum(0)
         self.prevFrame = None
 

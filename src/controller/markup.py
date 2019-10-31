@@ -20,6 +20,22 @@ class MarkupEngine(MarkupEngine_Base):
         self.model = model
 
     def markup(self, frame, prevFrame, cmap=None):
+        """Markup a given frame
+        
+        Parameters
+        ----------
+        frame : np.ndarray, int
+            The frame (as a ndarray) or frame number (requires that model has a detector class)
+        prevFrame : np.ndarray, int 
+            The previous frame or frame number
+        cmap : dictionary, optional
+            Maps labels to colours, by default None
+        
+        Returns
+        -------
+        np.ndarray
+            Numpy array of the frame in BGR
+        """
         # Prediction should be a list of tuples
         # -> (label, (pt1, pt2), speed, x, y)
         predictions = self.model.predict(frame, prevFrame)
