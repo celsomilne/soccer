@@ -1,16 +1,21 @@
 from src.view import Visualiser
 from src.model import SoccerModel
 from src.model import ModelBase
+from src.model import SoccerObjectDetector
 
 class NotModel(ModelBase):
     def __init__(self):
+        super().__init__()
         return
     def predict(self, frame, prevFrame):
         pred = [("testLabel", ((180, 360), (1200, 50)), 20, 0.6, 0.2)]
         return pred
     
+detector = SoccerObjectDetector()
+detector.load(videoname)
+
 # Create an instance of our model
-model = NotModel()
+model = NotModel(detector)
 
 # Create a new visualiser
 vis = Visualiser("notebooks/training/train_1.avi", model)

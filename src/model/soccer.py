@@ -24,5 +24,9 @@ class SoccerModel(ModelBase):
                     Vertex of the rectangle opposite to `pt1` as (x_position, y_position)
                 * speed : float
                     Speed in m/s of the label. None is `prevFrame` is None.
+                * x : float
+                    Relative x position on the field
+                * y : float
+                    Relative y position on the field
         """
         return
