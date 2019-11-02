@@ -137,166 +137,155 @@ def generate_points(line_dict, right_view, true_dict, rel_dict):
     return c
 
 
-class FieldTransform:
+class fieldTransform:
     true_dict = {
-        "top": np.array([0.0, 70.0]).astype(np.float32),
-        "mid": np.array([0.0, 0.0]).astype(np.float32),
-        "box": np.array([33.5, 0.0]).astype(np.float32),
-        "tbox": np.array([0.0, 55.15]).astype(np.float32),
-        "bbox": np.array([0.0, 14.85]).astype(np.float32),
-        "goal": np.array([50.0, 0.0]).astype(np.float32),
-        "tcirc": np.array([0.0, 39.575]).astype(np.float32),
-        "bcirc": np.array([0.0, 30.425]).astype(np.float32),
-        "rcirc": np.array([4.575, 0.0]).astype(np.float32),
-        "lcirc": np.array([-4.575, 0.0]).astype(np.float32),
-        "ccirc": np.array([0.0, 35.0]).astype(np.float32),
+        'top': np.array([0.,70.]).astype(np.float32),
+        'mid': np.array([0.,0.]).astype(np.float32),
+        'box': np.array([33.5,0.]).astype(np.float32),
+        'tbox': np.array([0.,55.15]).astype(np.float32),
+        'bbox': np.array([0.,14.85]).astype(np.float32),
+        'goal': np.array([50.,0.]).astype(np.float32),
+        'tcirc': np.array([0.,39.575]).astype(np.float32),
+        'bcirc': np.array([0.,30.425]).astype(np.float32),
+        'rcirc': np.array([4.575,0.]).astype(np.float32),
+        'lcirc': np.array([-4.575,0.]).astype(np.float32),
+        'ccirc': np.array([0.,35.]).astype(np.float32)
     }
 
     rel_dict = {
-        "top": ["mid", "box", "goal"],
-        "tbox": ["box", "goal"],
-        "bbox": ["box", "goal"],
-        "tcirc": ["mid"],
-        "bcirc": ["mid"],
-        "ccirc": ["lcirc", "rcirc"],
+        'top': ['mid','box','goal'],
+        'tbox': ['box','goal'],
+        'bbox': ['box','goal'],
+        'tcirc': ['mid'],
+        'bcirc': ['mid'],
+        'ccirc': ['lcirc','rcirc'],
     }
 
     def __call__(self, im):
-        mask_field = np.logical_and(
-            im[:, :, 1] > im[:, :, 0], im[:, :, 1] > im[:, :, 2]
-        ).astype(np.uint8)
+        mask_field = np.logical_and(im[:,:,1] > im[:,:,0], im[:,:,1] > im[:,:,2]).astype(np.uint8)
 
         k = 40
-        kernel = np.ones((k, k), np.uint8)
+        kernel = np.ones((k,k),np.uint8)
         mask = cv2.morphologyEx(mask_field, cv2.MORPH_OPEN, kernel)
-        kernel = np.ones((2 * k, 2 * k), np.uint8)
+        kernel = np.ones((2*k,2*k),np.uint8)
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
 
-        kernel = np.ones((1, 1), np.uint8)
-        mask = cv2.erode(mask, kernel, iterations=1)
+        field = cv2.bitwise_and(im, im, mask = mask)
 
-        gray = im[:, :, 2]
+        kernel = np.ones((1,1),np.uint8)
+        mask = cv2.erode(mask,kernel,iterations = 1)
+
+        gray = im[:,:,2]
+
+        blur_gray = cv2.GaussianBlur(gray,(5, 5),0)
 
         low_threshold = 30
         high_threshold = 200
         edges = cv2.Canny(gray, low_threshold, high_threshold)
-        edges = cv2.bitwise_and(edges, edges, mask=mask)
-        edges = cv2.dilate(edges, np.ones((3, 3)))
+        edges = cv2.bitwise_and(edges, edges, mask = mask)
+        edges = cv2.dilate(edges, np.ones((3,3)))
 
         rho_tol = 1
-        theta_tol = np.pi / 180
-        lines = np.array(
-            cv2.HoughLinesP(
-                edges, rho_tol, theta_tol, 50, minLineLength=100, maxLineGap=5
-            )
-        )
+        theta_tol = np.pi/180
+        lines = np.array(cv2.HoughLinesP(edges,rho_tol,theta_tol,50,minLineLength=100,maxLineGap=5))
         lines.shape = (lines.shape[0], lines.shape[2])
 
-        good_lines = np.array([l for l in lines if not is_edge_line(l, edges.shape)])
+        line_im = im.copy()
+
+        good_lines = np.array([l for l in lines if not is_edge_line(l,edges.shape)])
 
         lines = good_lines[0]
-        for i in range(1, len(good_lines)):
-            lines = merge_similar_lines(good_lines[i], lines)
+        for i in range(1,len(good_lines)):
+            lines = merge_similar_lines(good_lines[i],lines)
 
-        theta = np.arctan2(lines[:, 3] - lines[:, 1], lines[:, 2] - lines[:, 0]) % np.pi
+        theta = np.arctan2(lines[:,3]-lines[:,1], lines[:,2]-lines[:,0])%np.pi
 
-        line_dict = {
-            "left": np.array([0, 0, 0, edges.shape[0]]),
-            "right": np.array([edges.shape[1], 0, edges.shape[1], edges.shape[0]]),
-        }
+        line_dict = {'left': np.array([0,0,0,edges.shape[0]]),
+                    'right': np.array([edges.shape[1],0,edges.shape[1],edges.shape[0]])}
         right_view = 2
 
-        if np.any(abs(theta - np.pi / 2) < np.pi / 60) or len(theta) < 2:
+        if np.any(abs(theta - np.pi/2) < np.pi/60)  or len(theta) < 2:
             right_view = 1
-            line_dict["mid"] = lines[np.argmin(abs(theta - np.pi / 2))]
-            line_dict["top"] = lines[np.pi / 2 - abs(theta - np.pi / 2) < np.pi / 30][0]
-            midpoint = (line_dict["mid"][0] + line_dict["mid"][2]) // 2
+            line_dict['mid'] = lines[np.argmin(abs(theta-np.pi/2))]
+            line_dict['top'] = lines[np.pi/2 - abs(theta - np.pi/2) < np.pi/30][0]
+            midpoint = (line_dict['mid'][0] + line_dict['mid'][2])//2
 
             line_mask = np.ones(gray.shape, np.uint8)
-            for x1, y1, x2, y2 in line_dict.values():
-                cv2.line(line_mask, (x1, y1), (x2, y2), (0, 0, 0), 10)
-            line_mask[: line_mask.shape[0] // 8, :] = 0
-            line_mask[
-                (line_mask.shape[0] - line_mask.shape[0] // 8) : line_mask.shape[0], :
-            ] = 0
-            line_mask[:, :20] = 0
-            line_mask[:, line_mask.shape[1] - 20 :] = 0
+            for x1,y1,x2,y2 in line_dict.values():
+                cv2.line(line_mask,(x1,y1), (x2,y2), (0,0,0),10)
+            line_mask[:line_mask.shape[0]//8,:] = 0
+            line_mask[(line_mask.shape[0] - line_mask.shape[0]//8):line_mask.shape[0],:] = 0
+            line_mask[:,:20] = 0
+            line_mask[:,line_mask.shape[1]-20:] = 0
 
-            edges = cv2.bitwise_and(edges, edges, mask=line_mask)
-            edges = cv2.dilate(edges, np.ones((3, 3)))
+            edges = cv2.bitwise_and(edges, edges, mask = line_mask)
+            
+            _, conts, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            c = max(conts, key = cv2.contourArea)
+            x,y,w,h = cv2.boundingRect(c)
+            
+            line_disp = lines[:,[0,3]] - midpoint
+            idx = np.argpartition(np.mean(line_disp,axis=1) + np.min(line_disp,axis=1), 2)
+            lines = lines[np.any(lines != line_dict['top'],axis=1)]
+            lines = lines[np.any(lines != line_dict['mid'],axis=1)]
 
-            conts, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            c = max(conts, key=cv2.contourArea)
-            x, y, w, h = cv2.boundingRect(c)
+            lines = lines[idx[0:2]]
+            line_dict['tcirc'] = lines[np.argmin(np.mean(lines,axis=1))]
+            line_dict['bcirc'] = lines[np.argmax(np.mean(lines,axis=1))]
 
-            line_dict["tcirc"] = np.array([x, y, x + w, y])
-            line_dict["bcirc"] = np.array([x, y + h, x + w, y + h])
-            line_dict["ccirc"] = np.array([x, y + h // 2, x + w, y + h // 2])
+            c_top = find_intersection(line_dict['tcirc'], line_dict['mid'])
+            c_bot = find_intersection(line_dict['bcirc'], line_dict['mid'])
+            c_cen = (c_top[1] + c_bot[1])/2
+            line_dict['ccirc'] = np.array([x,c_cen,x+w,c_cen])
             if x < midpoint:
-                line_dict["lcirc"] = np.array([x, y, x, y + h])
+                line_dict['lcirc'] = np.array([x,y,x,y+h])
             else:
-                line_dict["rcirc"] = np.array([x + w, y, x + w, y + h])
+                line_dict['rcirc'] = np.array([x+w,y,x+w,y+h])
         else:
-            horz_theta = theta[np.argmin(np.pi / 2 - abs(theta - np.pi / 2))]
+            horz_theta = theta[np.argmin(np.pi/2-abs(theta-np.pi/2))]
 
-            if horz_theta < np.pi / 2:
+            if horz_theta < np.pi/2:
                 right_view = 0
-
-            horz_lines = lines[abs(theta - horz_theta) < np.pi / 30]
-            line_dict["top"] = horz_lines[
-                np.argmin(np.minimum(horz_lines[:, 1], horz_lines[:, 3]))
-            ]
-            lines = lines[np.any(lines != line_dict["top"], axis=1)]
-            horz_lines = horz_lines[np.any(horz_lines != line_dict["top"], axis=1)]
+            
+            horz_lines = lines[abs(theta-horz_theta) < np.pi/30]
+            line_dict['top'] = horz_lines[np.argmin(np.minimum(horz_lines[:,1], horz_lines[:,3]))]
+            lines = lines[np.any(lines != line_dict['top'],axis=1)]
+            horz_lines = horz_lines[np.any(horz_lines != line_dict['top'],axis=1)]
 
             if right_view:
-                goal_line_check = np.logical_and(
-                    lines[:, 0] - line_dict["top"][2] < 100,
-                    lines[:, 1] - line_dict["top"][3] < 20,
-                )
+                goal_line_check = np.logical_and(lines[:,0]-line_dict['top'][2]<100,\
+                                            lines[:,1]-line_dict['top'][3]<20)
             else:
-                goal_line_check = np.logical_and(
-                    lines[:, 2] - line_dict["top"][0] < 100,
-                    lines[:, 3] - line_dict["top"][1] < 20,
-                )
+                goal_line_check = np.logical_and(lines[:,2]-line_dict['top'][0]<100,\
+                                            lines[:,3]-line_dict['top'][1]<20)
 
             if any(goal_line_check):
-                line_dict["goal"] = lines[goal_line_check][0]
+                line_dict['goal'] = lines[goal_line_check][0]
                 lines = lines[np.logical_not(goal_line_check)]
 
-            line_dict["tbox"] = horz_lines[
-                np.argmin(horz_lines[:, 1] + horz_lines[:, 3])
-            ]
-            lines = lines[np.any(lines != line_dict["tbox"], axis=1)]
-            horz_lines = horz_lines[np.any(horz_lines != line_dict["tbox"], axis=1)]
+            line_dict['tbox'] = horz_lines[np.argmin(horz_lines[:,1]+horz_lines[:,3])]
+            lines = lines[np.any(lines != line_dict['tbox'],axis=1)]
+            horz_lines = horz_lines[np.any(horz_lines != line_dict['tbox'],axis=1)]
 
-            if len(horz_lines) != 0 and "tbox" in line_dict:
-                bbox_temp = horz_lines[np.argmin(horz_lines[:, 1] + horz_lines[:, 3])]
-                if np.max(bbox_temp[[1, 3]]) - np.max(line_dict["tbox"][[1, 3]]) > 2 * (
-                    np.max(line_dict["tbox"][[1, 3]]) - np.max(line_dict["top"][[1, 3]])
-                ):
-                    line_dict["bbox"] = bbox_temp
-                    lines = lines[np.any(lines != line_dict["bbox"], axis=1)]
-                    horz_lines = horz_lines[
-                        np.any(horz_lines != line_dict["bbox"], axis=1)
-                    ]
+            if len(horz_lines) != 0 and 'tbox' in line_dict:
+                bbox_temp = horz_lines[np.argmin(horz_lines[:,1]+horz_lines[:,3])]
+                if np.max(bbox_temp[[1,3]]) - np.max(line_dict['tbox'][[1,3]]) > \
+                        2*(np.max(line_dict['tbox'][[1,3]]) - np.max(line_dict['top'][[1,3]])):
+                    line_dict['bbox'] = bbox_temp            
+                    lines = lines[np.any(lines != line_dict['bbox'],axis=1)]
+                    horz_lines = horz_lines[np.any(horz_lines != line_dict['bbox'],axis=1)]
 
             if right_view:
-                box_line_check = (
-                    np.linalg.norm(lines[:, 0:2] - line_dict["tbox"][0:2], axis=1) < 50
-                )
+                box_line_check = np.linalg.norm(lines[:,0:2]-line_dict['tbox'][0:2],axis=1) < 50
             else:
-                box_line_check = (
-                    np.linalg.norm(lines[:, 2:4] - line_dict["tbox"][2:4], axis=1) < 50
-                )
+                box_line_check = np.linalg.norm(lines[:,2:4]-line_dict['tbox'][2:4],axis=1) < 50
             if any(box_line_check):
-                line_dict["box"] = lines[box_line_check][0]
+                line_dict['box'] = lines[box_line_check][0]
                 lines = lines[np.logical_not(box_line_check)]
 
         c = generate_points(line_dict, right_view, self.true_dict, self.rel_dict)
 
         return c
-
 
 class SoccerModel:
     ft = FieldTransform()
