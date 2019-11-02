@@ -40,7 +40,7 @@ class MarkupEngine(MarkupEngine_Base):
         """
         # Prediction should be a list of tuples
         # -> (label, (pt1, pt2), speed, x, y)
-        predictions = self.model.predict(frameNo, prevFrame)
+        predictions = self.model.predict(frameNo, 25)
 
         # Load the football pitch with the same height as the frame
         fbPitch = FootballPitch()
@@ -49,7 +49,7 @@ class MarkupEngine(MarkupEngine_Base):
         # Go through each predicted position
         for prediction in predictions:
             label, (pt1, pt2), speed, x, y = prediction
-            speed = "%sm/s" % (speed)
+            speed = "%.2fm/s" % (speed)
             color = self._getColorFromCmap(label, cmap)
 
             # Create the bounding box and draw onto the image
@@ -95,6 +95,10 @@ class BoundingBox(object):
     def draw(self, img, isRGB=False):
         if not isRGB:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        # print(self.left)
+        # print(self.right)
+        # print(self.bottom)
+        # print(self.top)
         bb.add(
             img, self.left, self.top, self.right, self.bottom, self.label, self.color
         )

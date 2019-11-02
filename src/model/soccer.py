@@ -303,6 +303,7 @@ class FieldTransform:
 class SoccerModel:
     ft = FieldTransform()
     obj_old = pd.DataFrame()
+    c = np.zeros((3, 3))
 
     def __init__(self, detector):
         self.detector = detector
@@ -331,66 +332,106 @@ class SoccerModel:
         obj["bottom"] = obj["top"] + obj["height"]
 
         # Get the feature transform
-        c = self.ft(frame)
+        try:
+            c = self.ft(frame)
+            if np.abs(c[0,2]) > .01 and np.abs(c[1,2]) > .01:
+                self.c = c
+            print(self.c)
+        except:
+            pass
 
-        u = np.vstack((obj["ufeet"].values, obj["vfeet"].values, np.ones((1, len(df)))))
-        
-        x = c.dot(u).T
-        x = x / x[:, 2]
+        u = np.vstack(
+            (obj["ufeet"].values, obj["vfeet"].values, np.ones((1, len(obj))))
+        )
 
-        x_old = self.old_obj.loc[:, ["xnew", "ynew"]].values
-        obj.loc[:, ["xnew", "ynew"]] = x[:, 0:2]
+        # Homographic transform
+        # u  - frame coordinates
+        # xy - field coordinates
+        xy = self.c.dot(u).T
+        xy = np.divide(xy.T, xy[:, 2]).T
 
-        if frame == 1:  # or frame drastically changed:
-            obj["vel"] = np.ones((1, len(obj))) * np.nan
+        # Initialise the new fieled positions as 0
+        obj["xnew"] = 0
+        obj["ynew"] = 0
+
+        # Set the field positions equal to the transformed coordinates
+        obj[["xnew", "ynew"]] = xy[:, 0:2]
+
+        if frameIdx == 1:
+
+            # Store and abort
+            obj["vel"] = 0.0
             self.obj_old = obj
         else:
-            diffs = np.stack((x[:, 0] - x_old[:, 0].T, x[:, 1] - x_old[:, 1].T), axis=0)
+
+            # Extract the old x and y coordinates
+            xy_old = self.obj_old.loc[:, ["xnew", "ynew"]].values.copy()
+
+            # Take the euclidean difference of the old and new positions
+            diffs = np.stack(
+                (
+                    xy[:, 0]
+                    - xy_old[:, 0].reshape((-1, 1)),  # difference in x position
+                    xy[:, 1]
+                    - xy_old[:, 1].reshape((-1, 1)),  # difference in y position
+                ),
+                axis=0,
+            )
             diffs = np.linalg.norm(diffs, axis=0)
 
-            tol = 100
-            m = np.amin(diffs, initial=tol)
-            while m < tol:
-                ind = np.unravel_index(np.argmax(diffs, axis=None), diffs.shape)
-                obj.loc[ind(0), ["xold", "yold"]] = x_old[ind(1), 0:2]
+            # Initialise 'old' positions
+            obj["xold"] = np.nan
+            obj["yold"] = np.nan
 
-                diffs = np.delete(diffs, ind[0], axis=0)
-                diffs = np.delete(diffs, ind[1], axis=1)
-                m = np.amin(diffs, initial=tol)
+            # Maximum euclidean distance between matching players
+            tol = 200
 
-            valid_old = ~np.isnan(obj.loc[:, "xold"].values)
-            obj.loc[valid_old, ["xnew", "ynew"]] = (
-                0.5 * obj.loc[valid_old, ["xold", "xold"]]
-                + 0.5 * obj.loc[valid_old, ["xnew", "xnew"]]
+            # Find the minimum between (tol, min(diffs))
+            while np.any(diffs < tol) and len(obj) > 0 and len(self.obj_old) > 0:
+                ind = np.unravel_index(np.argmin(diffs, axis=None), diffs.shape)
+                obj.loc[ind[1], ["xold", "yold"]] = xy_old[ind[0], 0:2]
+                diffs[:, ind[1]] = np.inf
+                diffs[ind[0], :] = np.inf
+
+            # Filter the x and y positions
+            valid_pos = ~np.isnan(obj['xold'])
+            obj.loc[valid_pos, ["xnew", "ynew"]] = 0.05 * obj.loc[valid_pos, ["xnew", "ynew"]].values + \
+                0.95 * obj.loc[valid_pos, ["xold", "yold"]].values
+
+            # Find the speed of the players
+            norm = np.linalg.norm(
+                obj.loc[:, ["xnew", "ynew"]].values
+                - obj.loc[:, ["xold", "yold"]].values,
+                axis=1,
             )
+            obj["vel"] = norm * fps
 
-            obj["vel"] = (
-                np.linalg.norm(
-                    obj.loc[:, ["xnew", "ynew"]].values
-                    - df.loc[:, ["xold", "xold"]].values,
-                    axis=1,
-                )
-                / fps
-            )
+            # Cap speed at 10
+            obj.loc[obj['vel'] > 10, 'vel'] = 10
 
         self.obj_old = obj
 
         vals = [
             (
-                0,
-                (i["left"], i["top"]),
-                (i["left"] + i["width"], i["top"] + i["height"]),
+                "alpha",
+                (
+                    (i["left"], i["top"]),
+                    (i["left"] + i["width"], i["top"] + i["height"]),
+                ),
                 i["vel"],
-                i["xnew"],
-                i["ynew"],
+                (i["ynew"] / 70),
+                (i["xnew"] + 50) / 100,
             )
-            for i in obj.iterrows()
+            for idx, i in obj.iterrows()
+            if (i["left"] == i["left"])
         ]
 
         return vals
 
     def get_frame(self, obj):
-        fName = obj.loc[0, "fileName"][0]
-        print(fName)
-        frame = cv2.imread(fName)
+        try:
+            fName = obj.loc[0, "fileName"][0]
+            frame = cv2.imread(fName)
+        except:
+            print(obj)
         return frame
