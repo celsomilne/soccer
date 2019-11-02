@@ -225,9 +225,7 @@ class FieldTransform:
             edges = cv2.bitwise_and(edges, edges, mask=line_mask)
             edges = cv2.dilate(edges, np.ones((3, 3)))
 
-            _, conts, _ = cv2.findContours(
-                edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-            )
+            conts, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             c = max(conts, key=cv2.contourArea)
             x, y, w, h = cv2.boundingRect(c)
 
@@ -336,9 +334,14 @@ class SoccerModel:
             c = self.ft(frame)
             if np.abs(c[0,2]) > .01 and np.abs(c[1,2]) > .01:
                 self.c = c
-            print(self.c)
         except:
             pass
+    
+        if frameIdx == 200:
+            c = self.ft(frame)
+            print(c)
+            print(self.c)
+            breakpoint
 
         u = np.vstack(
             (obj["ufeet"].values, obj["vfeet"].values, np.ones((1, len(obj))))
