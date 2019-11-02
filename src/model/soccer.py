@@ -137,7 +137,7 @@ def generate_points(line_dict, right_view, true_dict, rel_dict):
     return c
 
 
-class fieldTransform:
+class FieldTransform:
     true_dict = {
         'top': np.array([0.,70.]).astype(np.float32),
         'mid': np.array([0.,0.]).astype(np.float32),
@@ -220,7 +220,7 @@ class fieldTransform:
 
             edges = cv2.bitwise_and(edges, edges, mask = line_mask)
             
-            _, conts, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            conts, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             c = max(conts, key = cv2.contourArea)
             x,y,w,h = cv2.boundingRect(c)
             
@@ -230,8 +230,8 @@ class fieldTransform:
             lines = lines[np.any(lines != line_dict['mid'],axis=1)]
 
             lines = lines[idx[0:2]]
-            line_dict['tcirc'] = lines[np.argmin(np.mean(lines,axis=1))]
-            line_dict['bcirc'] = lines[np.argmax(np.mean(lines,axis=1))]
+            line_dict['tcirc'] = lines[np.argmin(np.mean(lines[:,[1,3]],axis=1))]
+            line_dict['bcirc'] = lines[np.argmax(np.mean(lines[:,[1,3]],axis=1))]
 
             c_top = find_intersection(line_dict['tcirc'], line_dict['mid'])
             c_bot = find_intersection(line_dict['bcirc'], line_dict['mid'])
@@ -291,6 +291,7 @@ class SoccerModel:
     ft = FieldTransform()
     obj_old = pd.DataFrame()
     c = np.zeros((3, 3))
+    count = 6
 
     def __init__(self, detector):
         self.detector = detector
@@ -302,6 +303,8 @@ class SoccerModel:
         df = self.detector.bb_df
         obj = self.detector.get_df(batchNum=frameIdx).reset_index()
         frame = self.get_frame(obj)
+        if frame is None:
+            return None
 
         width = obj["width"]
         height = obj["height"]
@@ -321,16 +324,16 @@ class SoccerModel:
         # Get the feature transform
         try:
             c = self.ft(frame)
-            if np.abs(c[0,2]) > .01 and np.abs(c[1,2]) > .01:
+            if np.abs(c[0,2]) > .01 and np.abs(c[1,2]) > .01 and self.count > 5:
                 self.c = c
+                self.count = 0
         except:
             pass
+        finally:
+            self.count += 1
     
         if frameIdx == 200:
             c = self.ft(frame)
-            print(c)
-            print(self.c)
-            breakpoint
 
         u = np.vstack(
             (obj["ufeet"].values, obj["vfeet"].values, np.ones((1, len(obj))))
@@ -376,7 +379,7 @@ class SoccerModel:
             obj["yold"] = np.nan
 
             # Maximum euclidean distance between matching players
-            tol = 200
+            tol = 50
 
             # Find the minimum between (tol, min(diffs))
             while np.any(diffs < tol) and len(obj) > 0 and len(self.obj_old) > 0:
@@ -424,6 +427,6 @@ class SoccerModel:
         try:
             fName = obj.loc[0, "fileName"][0]
             frame = cv2.imread(fName)
-        except:
-            print(obj)
-        return frame
+            return frame
+        except Exception as e:
+            return None

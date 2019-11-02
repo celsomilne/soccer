@@ -38,4 +38,4 @@ cmap = {"alpha": "blue", "omega": "blue", "ball": "green", "other": "black"}
 vis = Visualiser(videoname, model, cmap=cmap)
 
 # Show all markups
-vis.markup_all("test.avi", codec="MPG4", verbose=True, show=True)
+vis.markup_all(os.path.abspath("test.avi"), codec="MJPG", verbose=True, show=True)

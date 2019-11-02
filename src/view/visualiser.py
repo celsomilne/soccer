@@ -33,9 +33,10 @@ class Visualiser(Visualiser_Base):
             frame = self.MUE.markup(frame, curFrameNo, self.prevFrame, cmap=self.cmap)
         return hasFrame, frame
 
-    def markup_all(self, fname, codec="MPG4", verbose=True, show=False):
+    def markup_all(self, fname, codec="MJPG", verbose=True, show=False):
         if not show:
             vw = self._create_new_writer(fname, codec)
+            print("vw created")
         else:
             window = cv2.namedWindow(fname)
         self.reset_seed()
@@ -64,3 +65,5 @@ class Visualiser(Visualiser_Base):
 
         # Reset the position
         self.reset_seed()
+        if not show:
+            vw.release()

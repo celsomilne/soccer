@@ -25,7 +25,9 @@ class Visualiser_Base(object):
     def _set_CV_prop(self, prop, *args, **kwargs):
         self.capture.set(prop, *args, **kwargs)
 
-    def _create_new_writer(self, fname, fourcc):
+    def _create_new_writer(self, fname, fourcc) -> cv2.VideoWriter:
+        print("Creating writer %s" % fname)
+        print("Fourcc: %s" % fourcc)
         fourcc = cv2.VideoWriter_fourcc(*fourcc)
         size = (self.frameWidth, self.frameHeight)
         fr = self.frameRate

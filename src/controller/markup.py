@@ -41,6 +41,8 @@ class MarkupEngine(MarkupEngine_Base):
         # Prediction should be a list of tuples
         # -> (label, (pt1, pt2), speed, x, y)
         predictions = self.model.predict(frameNo, 25)
+        if predictions is None:
+            return frame
 
         # Load the football pitch with the same height as the frame
         fbPitch = FootballPitch()

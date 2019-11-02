@@ -90,7 +90,7 @@ class SoccerObjectDetector(object):
         new_im = new_im.resize(size=(min_size, min_size))
         return new_im
 
-    def __call__(self, videoname: str, savedir: str = "tmp/") -> pd.DataFrame:
+    def __call__(self, videoname: str, savedir: str = "tmp/", image_dir=None) -> pd.DataFrame:
         """ load all the images and find bounding boxes """
 
         # Load if we have already processed this file
@@ -100,12 +100,15 @@ class SoccerObjectDetector(object):
             return
 
         # Save the video to a directory
-        video = VideoDataset(videoname, img_size=self.img_size)
-        save_dir = os.path.abspath(savedir)
-        if not os.path.isdir(savedir) or os.listdir(save_dir) == []:
-            video.toFile(None, save_dir, None, everyFrame=1)
+        if image_dir is None:
+            video = VideoDataset(videoname, img_size=self.img_size)
+            save_dir = os.path.abspath(savedir)
+            if not os.path.isdir(savedir) or os.listdir(save_dir) == []:
+                video.toFile(None, save_dir, None, everyFrame=1)
+            video.release()
+        else:
+            save_dir = image_dir
         dataFile = ImageFolder(save_dir, img_size=self.img_size)
-        video.release()
 
         # Create the dataset
         dataloader = DataLoader(dataFile, batch_size=1, shuffle=False, num_workers=0,)
