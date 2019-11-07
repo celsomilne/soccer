@@ -145,10 +145,10 @@ class FieldTransform:
         'tbox': np.array([0.,55.15]).astype(np.float32),
         'bbox': np.array([0.,14.85]).astype(np.float32),
         'goal': np.array([50.,0.]).astype(np.float32),
-        'tcirc': np.array([0.,39.575]).astype(np.float32),
-        'bcirc': np.array([0.,30.425]).astype(np.float32),
-        'rcirc': np.array([4.575,0.]).astype(np.float32),
-        'lcirc': np.array([-4.575,0.]).astype(np.float32),
+        'tcirc': np.array([0.,44.15]).astype(np.float32),
+        'bcirc': np.array([0.,25.85]).astype(np.float32),
+        'rcirc': np.array([9.15,0.]).astype(np.float32),
+        'lcirc': np.array([-9.15,0.]).astype(np.float32),
         'ccirc': np.array([0.,35.]).astype(np.float32)
     }
 
@@ -324,10 +324,10 @@ class SoccerModel:
         # Get the feature transform
         try:
             c = self.ft(frame)
-            if np.abs(c[0,2]) > .01 and np.abs(c[1,2]) > .01 and self.count > 5:
+            if (np.abs(c[0,2]) > .01 and np.abs(c[1,2]) > .01 and self.count > 5) or frameIdx == 1:
                 self.c = c
                 self.count = 0
-        except:
+        except Exception as e:
             pass
         finally:
             self.count += 1
@@ -375,8 +375,8 @@ class SoccerModel:
             diffs = np.linalg.norm(diffs, axis=0)
 
             # Initialise 'old' positions
-            obj["xold"] = np.nan
-            obj["yold"] = np.nan
+            obj["xold"] = 0
+            obj["yold"] = 0
 
             # Maximum euclidean distance between matching players
             tol = 50
@@ -408,7 +408,7 @@ class SoccerModel:
 
         vals = [
             (
-                "alpha",
+                i["label"],
                 (
                     (i["left"], i["top"]),
                     (i["left"] + i["width"], i["top"] + i["height"]),

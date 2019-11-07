@@ -1,7 +1,7 @@
 <annotation>
-	<folder>train_1</folder>
-	<filename>3501.png</filename>
-	<path>C:\Users\Celso\Documents\soccer\notebooks\training\train_1\3501.png</path>
+	<folder>training_all</folder>
+	<filename>3501.jpg</filename>
+	<path>C:\Users\Celso\Documents\soccer\notebooks\training_all\3501.jpg</path>
 	<source>
 		<database>Unknown</database>
 	</source>
@@ -84,7 +84,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>player</name>
+		<name>blurry</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>

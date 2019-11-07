@@ -26,7 +26,7 @@ class NotModel(ModelBase):
         return pred
 
 
-detector = SoccerObjectDetector()
+detector = SoccerObjectDetector(bboxpath=None)
 videoname = os.path.abspath("sample_data/side_to_side.mov")
 detector(videoname, savedir="test/")
 

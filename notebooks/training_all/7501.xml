@@ -1,7 +1,7 @@
 <annotation>
-	<folder>train_1</folder>
-	<filename>7501.png</filename>
-	<path>C:\Users\Celso\Documents\soccer\notebooks\training_2\train_1\7501.png</path>
+	<folder>training_all</folder>
+	<filename>7501.jpg</filename>
+	<path>C:\Users\Celso\Documents\soccer\notebooks\training_all\7501.jpg</path>
 	<source>
 		<database>Unknown</database>
 	</source>
@@ -177,6 +177,18 @@
 			<ymin>416</ymin>
 			<xmax>997</xmax>
 			<ymax>540</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>player</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>661</xmin>
+			<ymin>234</ymin>
+			<xmax>741</xmax>
+			<ymax>317</ymax>
 		</bndbox>
 	</object>
 </annotation>

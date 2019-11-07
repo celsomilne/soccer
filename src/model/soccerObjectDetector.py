@@ -72,10 +72,12 @@ class SoccerObjectDetector(object):
     # TODO - improve this (currently not at all accurate)
     def detect_team(self, img_path: str, box: tuple = (0, 0, 1280, 704)) -> str:
         """ find the detected player's team """
+        print("Detecting team!")
         imgObj = Image.open(img_path[0])
         cropped = np.array(imgObj.resize(size=(32, 32), box=box))
         medianRed = np.median(cropped[:, :, 0])
         medianBlue = np.median(cropped[:, :, 2])
+        
 
         return "alpha" if medianRed < 100 and medianBlue < 90 else "omega"
 

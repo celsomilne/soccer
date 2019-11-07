@@ -1,7 +1,7 @@
 <annotation>
-	<folder>train_2</folder>
-	<filename>14881.png</filename>
-	<path>C:\Users\Celso\Documents\soccer\notebooks\training_2\train_2\14881.png</path>
+	<folder>training_all</folder>
+	<filename>14881.jpg</filename>
+	<path>C:\Users\Celso\Documents\soccer\notebooks\training_all\14881.jpg</path>
 	<source>
 		<database>Unknown</database>
 	</source>
@@ -173,9 +173,9 @@
 		<truncated>0</truncated>
 		<difficult>0</difficult>
 		<bndbox>
-			<xmin>968</xmin>
-			<ymin>180</ymin>
-			<xmax>990</xmax>
+			<xmin>969</xmin>
+			<ymin>179</ymin>
+			<xmax>992</xmax>
 			<ymax>238</ymax>
 		</bndbox>
 	</object>
