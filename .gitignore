@@ -111,3 +111,7 @@ venv.bak/
 
 # Sample data
 sample_data/*
+
+# Jupyter notebooks
+*.ipynb
+notebooks/*

@@ -1,7 +1,0 @@
-numpy
-matplotlib
-tensorflow
-tensorboard
-terminaltables
-pillow
-tqdm
