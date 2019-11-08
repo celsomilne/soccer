@@ -109,9 +109,5 @@ venv.bak/
 # Model weights
 *.weights
 
-# Sample data
-sample_data/*
-
-# Jupyter notebooks
-*.ipynb
-notebooks/*
+# Jupyter notebook
+./notebooks/*
