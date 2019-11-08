@@ -76,7 +76,6 @@ class SoccerObjectDetector(object):
         cropped = np.array(imgObj.resize(size=(32, 32), box=box))
         medianRed = np.median(cropped[:, :, 0])
         medianBlue = np.median(cropped[:, :, 2])
-        
 
         return "alpha" if medianRed < 100 and medianBlue < 90 else "omega"
 
@@ -91,12 +90,14 @@ class SoccerObjectDetector(object):
         new_im = new_im.resize(size=(min_size, min_size))
         return new_im
 
-    def __call__(self, videoname: str, savedir: str = "tmp/", image_dir=None) -> pd.DataFrame:
+    def __call__(
+        self, videoname: str, savedir: str = "tmp/", image_dir=None
+    ) -> pd.DataFrame:
         """ load all the images and find bounding boxes """
 
         # Load if we have already processed this file
-        # print(self.bbox_path)
         if os.path.isfile(self.bbox_path):
+            print("Bounding boxes found at %s. Loading." % self.bbox_path)
             self.load(self.bbox_path)
             return
 

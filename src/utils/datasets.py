@@ -23,7 +23,7 @@ def pad_to_square(img, pad_value):
     pad = (0, 0, pad1, pad2) if h <= w else (pad1, pad2, 0, 0)
     # Add padding
     img = F.pad(img, pad, "constant", value=pad_value)
-    
+
     return img, pad
 
 
@@ -41,7 +41,9 @@ def random_resize(images, min_size=288, max_size=448):
 class ImageFolder(Dataset):
     def __init__(self, folder_path, img_size=416):
         # self.files = sorted(glob.glob("%s/*.*" % folder_path))
-        fpaths = [os.path.join(folder_path, i) for i in os.listdir(folder_path) if "jpg" in i]
+        fpaths = [
+            os.path.join(folder_path, i) for i in os.listdir(folder_path) if "jpg" in i
+        ]
         fpaths.sort(key=lambda f: int("".join(filter(str.isdigit, f))))
         self.files = fpaths
         self.img_size = img_size
