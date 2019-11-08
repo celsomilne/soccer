@@ -121,7 +121,7 @@ class SoccerObjectDetector(object):
             torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTkensor
         )
 
-        loaderIt = tqdm(enumerate(dataloader), desc="Processing", total=len(dataFile))
+        loaderIt = tqdm(enumerate(dataloader), desc="Detecting Bounding Boxes", total=len(dataFile))
         for batch_i, (img_paths, input_imgs) in loaderIt:
             img = Variable(input_imgs.type(Tensor))
 
