@@ -45,3 +45,12 @@ SAVE_VIDEO_FRAMES_DIR = "test/"                 # Directory to save frame jpgs t
 SAVE_VIDEO = False                              # If true, will show in real time, otherwise will save
 SAVE_MARKUP_TO = "output.avi"                   # Video to save video to (SAVE_VIDEO is True)
 ```
+
+## Viewing Frames
+To convert an output video to a folder of jpgs (for easier viewing) alter the file `./videoToFrames.py` and set the `VIDEONAME` value to be the name of the video created from `SAVE_MARKUP_TO` in the above section. Then:
+
+```bash
+python videoToFrames.py
+```
+
+Take a look at `output/` to view the frames!
