@@ -9,7 +9,7 @@ from src.model import SoccerObjectDetector
 ###############
 VIDEO_FILENAME = "sample_data/side_to_side.mov" # Name of the video to markup
 SAVE_VIDEO_FRAMES_DIR = "side_to_side/"         # Directory to save frame jpgs to
-SAVE_VIDEO = False                              # If true, will show in real time, otherwise will save
+SAVE_VIDEO = True                              # If true, will show in real time, otherwise will save
 SAVE_MARKUP_TO = "output.avi"                   # Video to save video to (SAVE_VIDEO is True)
 
 #####################################
